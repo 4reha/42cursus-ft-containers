@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/17 09:26:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/17 11:17:17 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/08/18 09:56:46 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 namespace	ft
 {
 	template <typename vector>
-	class vectorIter
+	class vector_Iter
 	{
 		public:
 			typedef vector::value_type	value_type;
@@ -26,23 +26,23 @@ namespace	ft
 		protected:
 			pointer_type	m_ptr;
 		public:
-			vectorIter(){}; // Default constructer
-			vectorIter(pointer_type	ptr) : m_ptr(ptr){};
-			vectorIter(vectorIter const& Iter) // copy constructer
+			vector_Iter(){}; // Default constructer
+			// vector_Iter(pointer_type	ptr) : m_ptr(ptr){};
+			vector_Iter(vector_Iter const& Iter) // copy constructer
 			{
 				*this = Iter;
 			};
-			vectorIter& operator=(const vectorIter& Iter) // copy assignment
+			vector_Iter& operator=(const vector_Iter& Iter) // copy assignment
 			{
 				m_ptr = Iter.m_ptr;
 				return (*this);
 			};
-			~vectorIter(){};
-			bool	operator==(const vectorIter& Iter) const // equality operator
+			~vector_Iter(){};
+			bool	operator==(const vector_Iter& Iter) const // equality operator
 			{
 				return(m_ptr==Iter.m_ptr);
 			};
-			bool	operator!=(const vectorIter& Iter) const // inquality operator
+			bool	operator!=(const vector_Iter& Iter) const // inquality operator
 			{
 				return(m_ptr!=Iter.m_ptr);
 			};
@@ -54,25 +54,25 @@ namespace	ft
 			{
 				return(m_ptr);
 			};
-			vectorIter& operator++() //pre-increment operator
+			vector_Iter& operator++() //pre-increment operator
 			{
 				m_ptr++;
 				return (*this);
 			};
-			vectorIter operator++(int) // post-increment operator
+			vector_Iter operator++(int) // post-increment operator
 			{
-				vectorIter Iter = *this;
+				vector_Iter Iter = *this;
 				++m_ptr ;
 				return (Iter);
 			};
-			vectorIter& operator--() // pre-decrement operator
+			vector_Iter& operator--() // pre-decrement operator
 			{
 				m_ptr--;
 				return (*this);
 			};
-			vectorIter operator--(int) //post-decrement operator
+			vector_Iter operator--(int) //post-decrement operator
 			{
-				vectorIter Iter = *this;
+				vector_Iter Iter = *this;
 				--m_ptr ;
 				return (Iter);
 			};
@@ -80,22 +80,54 @@ namespace	ft
 			{
 				return(*m_ptr[index]);
 			};
-			bool	operator<(const vectorIter& Iter) const // smaller-than operator
+			bool	operator<(const vector_Iter& Iter) const // smaller-than operator
 			{
 				return(m_ptr<Iter.m_ptr);
 			};
-			bool	operator>(const vectorIter& Iter) const // greater-than operator
+			bool	operator>(const vector_Iter& Iter) const // greater-than operator
 			{
 				return(m_ptr>Iter.m_ptr);
 			};
-			bool	operator<=(const vectorIter& Iter) const //  smaller-than or equal  operator
+			bool	operator<=(const vector_Iter& Iter) const //  smaller-than or equal  operator
 			{
 				return(m_ptr<=Iter.m_ptr);
 			};
-			bool	operator>=(const vectorIter& Iter) const // greater-than or equal  operator
+			bool	operator>=(const vector_Iter& Iter) const // greater-than or equal  operator
 			{
 				return(m_ptr>=Iter.m_ptr);
 			};
+			vector_Iter operator+(int n) const
+			{
+				vector_Iter Iter(*this);
+				Iter+= n;
+				return (Iter);
+			};
+			vector_Iter operator-(int n) const
+			{
+				vector_Iter Iter(*this);
+				Iter-= n;
+				return (Iter);
+			};
+			int	operator+(const vector_Iter& Iter)
+			{
+				int n = this->m_ptr + Iter.m_ptr;
+				return (n);
+			}
+			int	operator-(const vector_Iter& Iter)
+			{
+				int n = this->m_ptr - Iter.m_ptr;
+				return (n);
+			}
+			vector_Iter& operator+=(int n)
+			{
+				m_ptr+= n;
+				return (*this);
+			};
+			vector_Iter& operator-=(int n)
+			{
+				m_ptr-= n;
+				return (*this);
+			}
 	};
 		
 	template <typename T, typename Alloc = std::allocator<T>>
@@ -108,7 +140,7 @@ namespace	ft
 			typedef const T&				const_reference;
 			typedef T*					pointer;
 			typedef const T*				const_pointer;
-			typedef ft::vectorIter<vector<T>>	iterator;
+			typedef ft::vector_Iter<vector<T>>	iterator;
 			typedef size_t					size_type;
 		private:
 			size_type	_size;
