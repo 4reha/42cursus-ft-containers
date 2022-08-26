@@ -6,146 +6,91 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/17 09:26:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/18 09:56:46 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/08/26 18:17:32 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <iostream>
+#include	<iostream>
+#include	"iterators.hpp"
 
 namespace	ft
 {
-	template <typename vector>
-	class vector_Iter
-	{
-		public:
-			typedef vector::value_type	value_type;
-			typedef vector::value_type*	pointer_type;
-			typedef vector::value_type&	reference_type;
-		protected:
-			pointer_type	m_ptr;
-		public:
-			vector_Iter(){}; // Default constructer
-			// vector_Iter(pointer_type	ptr) : m_ptr(ptr){};
-			vector_Iter(vector_Iter const& Iter) // copy constructer
-			{
-				*this = Iter;
-			};
-			vector_Iter& operator=(const vector_Iter& Iter) // copy assignment
-			{
-				m_ptr = Iter.m_ptr;
-				return (*this);
-			};
-			~vector_Iter(){};
-			bool	operator==(const vector_Iter& Iter) const // equality operator
-			{
-				return(m_ptr==Iter.m_ptr);
-			};
-			bool	operator!=(const vector_Iter& Iter) const // inquality operator
-			{
-				return(m_ptr!=Iter.m_ptr);
-			};
-			reference_type operator*()
-			{
-				return (*m_ptr);
-			};
-			pointer_type operator->()
-			{
-				return(m_ptr);
-			};
-			vector_Iter& operator++() //pre-increment operator
-			{
-				m_ptr++;
-				return (*this);
-			};
-			vector_Iter operator++(int) // post-increment operator
-			{
-				vector_Iter Iter = *this;
-				++m_ptr ;
-				return (Iter);
-			};
-			vector_Iter& operator--() // pre-decrement operator
-			{
-				m_ptr--;
-				return (*this);
-			};
-			vector_Iter operator--(int) //post-decrement operator
-			{
-				vector_Iter Iter = *this;
-				--m_ptr ;
-				return (Iter);
-			};
-			reference_type	operator[](int index) // index operator
-			{
-				return(*m_ptr[index]);
-			};
-			bool	operator<(const vector_Iter& Iter) const // smaller-than operator
-			{
-				return(m_ptr<Iter.m_ptr);
-			};
-			bool	operator>(const vector_Iter& Iter) const // greater-than operator
-			{
-				return(m_ptr>Iter.m_ptr);
-			};
-			bool	operator<=(const vector_Iter& Iter) const //  smaller-than or equal  operator
-			{
-				return(m_ptr<=Iter.m_ptr);
-			};
-			bool	operator>=(const vector_Iter& Iter) const // greater-than or equal  operator
-			{
-				return(m_ptr>=Iter.m_ptr);
-			};
-			vector_Iter operator+(int n) const
-			{
-				vector_Iter Iter(*this);
-				Iter+= n;
-				return (Iter);
-			};
-			vector_Iter operator-(int n) const
-			{
-				vector_Iter Iter(*this);
-				Iter-= n;
-				return (Iter);
-			};
-			int	operator+(const vector_Iter& Iter)
-			{
-				int n = this->m_ptr + Iter.m_ptr;
-				return (n);
-			}
-			int	operator-(const vector_Iter& Iter)
-			{
-				int n = this->m_ptr - Iter.m_ptr;
-				return (n);
-			}
-			vector_Iter& operator+=(int n)
-			{
-				m_ptr+= n;
-				return (*this);
-			};
-			vector_Iter& operator-=(int n)
-			{
-				m_ptr-= n;
-				return (*this);
-			}
-	};
-		
 	template <typename T, typename Alloc = std::allocator<T>>
 	class vector
 	{
 		public:
-			typedef T						value_type;
-			typedef Alloc					allocator_type;
-			typedef T&					reference;
-			typedef const T&				const_reference;
-			typedef T*					pointer;
-			typedef const T*				const_pointer;
-			typedef ft::vector_Iter<vector<T>>	iterator;
-			typedef size_t					size_type;
+			typedef T									value_type;
+			typedef Alloc								allocator_type;
+			typedef T&								reference;
+			typedef const T&							const_reference;
+			typedef T*								pointer;
+			typedef const T*							const_pointer;
+			typedef ft::iterator<value_type>				iterator;
+			typedef ft::iterator<const value_type>			const_iterator;
+			typedef ft::reverse_iterator<iterator>			reverse_iterator;
+			typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
+			typedef size_t								size_type;
 		private:
 			size_type	_size;
 			size_type	_capacity;
-			pointer	_data;
-			allocator_type	_alloc;
+			pointer	_container;
+			allocator_type	_allocator;
+		public:
+			explicit vector (const allocator_type& alloc = allocator_type());
+			explicit vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type());
+			template <class InputIterator>
+				vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
+			vector (const vector& x);
+			~vector();
+			vector& operator= (const vector& x);
+
+			// Iretators:
+			iterator begin();
+			const_iterator begin() const;
+			iterator end();
+			const_iterator end() const;
+			reverse_iterator rbegin();
+			const_reverse_iterator rbegin() const;
+			reverse_iterator rend();
+			const_reverse_iterator rend() const;
+
+			// Capacity:
+			size_type size() const;
+			size_type max_size() const;
+			void resize (size_type n, value_type val = value_type());
+			size_type capacity() const;
+			bool empty() const;
+			void reserve (size_type n);
+			void shrink_to_fit();
+
+			// Element access:
+			reference operator[] (size_type n);
+			const_reference operator[] (size_type n) const;
+			reference at (size_type n);
+			const_reference at (size_type n) const;
+			reference front();
+			const_reference front() const;
+			reference back();
+			const_reference back() const;
+			pointer data() noexcept;
+			const_pointer data() const noexcept;
+
+			// Modifiers:
+			template <class InputIterator>
+				void assign (InputIterator first, InputIterator last);
+			void assign (size_type n, const value_type& val);
+			void push_back (const value_type& val);
+			void pop_back();
+			iterator insert (iterator position, const value_type& val);
+			void insert (iterator position, size_type n, const value_type& val);
+			template <class InputIterator>
+				void insert (iterator position, InputIterator first, InputIterator last);
+			iterator erase (iterator position);
+			iterator erase (iterator first, iterator last);
+
+			// Allocator:
+			allocator_type get_allocator() const;
 	};	
 }
