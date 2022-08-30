@@ -6,13 +6,14 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/18 11:23:26 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/27 10:37:13 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/08/30 17:21:24 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <iostream>
+#include "red_black.hpp"
 
 namespace ft 
 {
@@ -56,7 +57,70 @@ namespace ft
 
 
 	// ITERATOR
+	template <typename node_pointer, typename T> 
+	class RBIterator
+	{
+		public:
+			typedef typename iterator_traits<T>::difference_type		difference_type;
+			typedef typename iterator_traits<T>::value_type			value_type;
+			typedef typename iterator_traits<T>::pointer				pointer;
+			typedef typename iterator_traits<T>::reference			reference;
+			typedef typename iterator_traits<T>::iterator_category		iterator_category;
+		protected:
+			node_pointer	m_ptr;
+		public:
+			RBIterator() : m_ptr(nullptr) {}
+			RBIterator(const RBIterator& iter) : m_ptr(iter.m_ptr)	{}
+			RBIterator(node_pointer ptr) : m_ptr(ptr)	{}
+			RBIterator& operator=(const RBIterator& iter)	{ m_ptr = iter.m_ptr; return (*this); }
+			RBIterator& operator=(const node_pointer& ptr)	{ m_ptr = ptr; return (*this); }
+			~RBIterator() {}
+			
+			reference	operator*()	{ return (m_ptr->key); }
+			pointer	operator->()	{ return (&m_ptr->key); }
 
+			RBIterator&	operator++()	{
+				if (m_ptr->right)
+				{
+					m_ptr = m_ptr->right;
+					while (m_ptr->left)
+						m_ptr = m_ptr->left;
+				}
+				else {
+					while(!m_ptr->isLeft() && !m_ptr->isRoot())
+						m_ptr = m_ptr->parent;
+					m_ptr = m_ptr->parent;
+				}
+				return (*this);
+			}
+			RBIterator	operator++(int)	{
+				RBIterator it(*this);
+				++(*this);
+				return (it);
+			}
+			RBIterator&	operator--()	{
+				if (m_ptr->left)
+				{
+					m_ptr = m_ptr->left;
+					while (m_ptr->right)
+						m_ptr = m_ptr->right;
+				}
+				else {
+					while(m_ptr->isLeft())
+						m_ptr = m_ptr->parent;
+					m_ptr = m_ptr->parent;
+				}
+				return (*this);
+			}
+			RBIterator	operator--(int)	{
+				RBIterator it(*this);
+				--(*this);
+				return (it);
+			}
+			
+			bool	operator==(const RBIterator& iter) const	{ return (this->m_ptr->key == iter.m_ptr->key); }
+			bool	operator!=(const RBIterator& iter) const	{ return (this->m_ptr->key != iter.m_ptr->key); }
+	};
 	template <typename T> 
 	class iterator
 	{
@@ -158,4 +222,5 @@ namespace ft
 	template<typename Iterator>
 	reverse_iterator<Iterator> operator+(typename reverse_iterator<Iterator>::difference_type n, const reverse_iterator<Iterator> &rev_it)
 		{ return (reverse_iterator<Iterator>(rev_it.base() - n)); }
+
 }
