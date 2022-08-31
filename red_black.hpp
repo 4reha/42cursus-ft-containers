@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/30 09:31:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/30 18:23:08 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/08/31 14:25:30 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,8 +84,89 @@ namespace	ft
 					p->left = newNode;
 				else
 					p->right = newNode;
+				insertionFix(newNode);
+			}
+			void	insertionFix(node_pointer node)	{
+				node_pointer uncle;
+				while (node->parent->color == RED)	{
+					std::cout << node->parent->key << std::endl;
+					std::cout << node->key << std::endl;
+					
+					if (node->parent->isRight())	{
+						uncle = node->parent->parent->left;
+						if (uncle && uncle->color == RED)	{
+							// case 3.1
+							uncle->color = BLACK;
+							node->parent->color = BLACK;
+							node->parent->parent->color = RED;
+							node = node->parent->parent;
+						}
+						else	{
+							if (node->isLeft())	{
+								//case 3.2.2
+								node = node->parent;
+								rightRotate(node);
+							}
+							// case 3.2.1
+							node->parent->color = BLACK;
+							node->parent->parent->color = RED;
+							leftRotate(node->parent->parent);
+						}
+					}
+					else	{
+					// std::cout << "Here" << std::endl;
+						uncle = node->parent->parent->right;
+						if (uncle && uncle->color == RED)	{
+							// mirror case 3.1
+							uncle->color = BLACK;
+							node->parent->color = BLACK;
+							node->parent->parent->color = RED;
+							node = node->parent->parent;
+						}
+						else	{
+							if (node->isRight())	{
+								// mirror case 3.2.2
+								node = node->parent;
+								leftRotate(node);
+							}
+							//mirror case 3.2.1
+							node->parent->color = BLACK;
+							node->parent->parent->color = RED;
+							rightRotate(node->parent->parent);
+						}
+
+					}
+					if (node == this->root)	{
+						std::cout << "root" << std::endl;
+						node->color = BLACK;
+						break ;
+					}
+				}
 			}
 			
+			void	remove(value_type key)
+			{
+				node_pointer node = this->root;
+				node_pointer tmp = nullptr;
+				node_pointer p, q;
+				while (node)
+				{
+					if (node->key == key)	{
+						tmp = node;
+						break ;
+					}
+					if (node->key < key)
+						node = node->right;
+					if (node->key > key)
+						node = node->left;
+				}
+				if (!tmp)
+					return;
+				q = tmp;
+				
+				
+			}
+
 			iterator	begin()	
 			{
 				node_pointer t = this->root;
@@ -103,31 +184,37 @@ namespace	ft
 
 
 			void	leftRotate(node_pointer ptr)	{
+				std::cout << "leftRotate" << std::endl;
 				node_pointer	r_node = ptr->right;
 				ptr->right = r_node->left;
 				if (r_node->left)
 					r_node->left->parent = ptr;
 				r_node->parent = ptr->parent;
-				if (ptr->parent && ptr->parent->left == ptr)
+				if (!ptr->parent)
+					this->root = r_node;
+				else	if (ptr->isLeft())
 					ptr->parent->left = r_node;
-				else if (ptr->parent && ptr->parent->right == ptr)
+				else 
 					ptr->parent->right = r_node;
 				r_node->left = ptr;
-				ptr->parent = r_node;				
+				ptr->parent = r_node;
 			}
 
 			void	rightRotate(node_pointer ptr)	{
+				std::cout<< "rightRotate" << std::endl;
 				node_pointer	l_node = ptr->left;
 				ptr->left = l_node->right;
-				if (l_node->left)
-					l_node->left->parent = ptr;
+				if (l_node->right)
+					l_node->right->parent = ptr;
 				l_node->parent = ptr->parent;
-				if (ptr->parent && ptr->parent->left == ptr)
+				if (!ptr->parent)
+					this->root = l_node;
+				else if (ptr->isLeft())
 					ptr->parent->left = l_node;
-				else if (ptr->parent && ptr->parent->right == ptr)
+				else
 					ptr->parent->right = l_node;
 				l_node->right = ptr;
-				ptr->parent = l_node;				
+				ptr->parent = l_node;
 			}
 			void	reColor()
 				{ this->color = BLACK ? this->color == RED : this->color = RED; }
