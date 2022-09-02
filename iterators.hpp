@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/18 11:23:26 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/30 17:21:24 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/02 09:17:44 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,9 @@ namespace ft
 				--(*this);
 				return (it);
 			}
+
+			node_pointer	base()	{ return (m_ptr); }
+			node_pointer	base() const	{ return (m_ptr); }
 			
 			bool	operator==(const RBIterator& iter) const	{ return (this->m_ptr->key == iter.m_ptr->key); }
 			bool	operator!=(const RBIterator& iter) const	{ return (this->m_ptr->key != iter.m_ptr->key); }
