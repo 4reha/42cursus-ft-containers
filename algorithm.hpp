@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/27 10:15:00 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/29 13:30:07 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/03 18:47:34 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ namespace ft
 		{
 			if (first2 == last2 || *first2 < *first1)
 				return (false);
-			else if (*first < *first2)
+			else if (*first1 < *first2)
 				return (true);
 			first1++;
 			first2++;
@@ -73,7 +73,7 @@ namespace ft
 		{
 			if (first2 == last2 || comp(*first2, *first1))
 				return (false);
-			else if (comp(*first, *first2))
+			else if (comp(*first1, *first2))
 				return (true);
 			first1++;
 			first2++;
