@@ -6,21 +6,20 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/30 09:31:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/03 19:35:15 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/04 14:26:59 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include	<iostream>
-// #include "iterators.hpp"
 #include "functional.hpp"
 
 namespace	ft
 {
 
 	enum node_color {BLACK, RED, DOUBLE_BLACK};
-
+	
 	
 	template<typename T>
 	struct Node
@@ -45,7 +44,7 @@ namespace	ft
 		
 	};
 
-	template<class T, class Compare = ft::less<T>, class Alloc = std::allocator<ft::Node<T> > >
+	template<typename T, class Compare, typename Alloc = std::allocator<Node<T> > >
 	class RBTree
 	{
 		public:
@@ -101,7 +100,7 @@ namespace	ft
 					node = node->left;
 				return (node);
 			}
-			
+
 			node_pointer	maxNode(node_pointer root)	{
 				node_pointer node = root;
 				while (node->right != NIL)
@@ -109,6 +108,20 @@ namespace	ft
 				return (node);
 			}
 
+			node_pointer	begin()	{
+				node_pointer node = this->root;
+				while (node->left != NIL)
+					node = node->left;
+				return (node);
+			}
+
+			node_pointer	end()	{
+				node_pointer node = this->root;
+				while (node->right != NIL)
+					node = node->right;
+				return (node);
+			}
+			
 			node_pointer BSTinsertion(node_pointer ptr, node_pointer node)	{
 				if (ptr == NIL)
 					ptr = node;
@@ -259,7 +272,7 @@ namespace	ft
 				root = NIL;
 			}
 
-			void	insert(value_type key)	{
+			node_pointer	insert(value_type key)	{
 				_size++;
 				node_pointer newNode = _allocator.allocate(1);
 				_allocator.construct(newNode, ft::Node<value_type>(key));
@@ -267,13 +280,14 @@ namespace	ft
 				this->root = BSTinsertion(this->root, newNode);
 				this->root->color = BLACK;
 				insertionFix(newNode);
+				return (newNode);
 			}
 
-			node_pointer searchNode(node_pointer root, value_type key)
+			node_pointer searchNode(value_type key)
 			{
-				node_pointer node = root;
+				node_pointer node = this->root;
 				while (node != NIL) {
-					if (node->key == key)
+					if (!_comp(key, node->key) && !_comp(node->key, key))
 						break ;
 					if (_comp(key, node->key))
 						node = node->left;
@@ -285,7 +299,7 @@ namespace	ft
 
 			void	remove(value_type key)
 			{
-				node_pointer node = searchNode(this->root, key);
+				node_pointer node = searchNode(key);
 				if (node != NIL)
 				{
 					node_pointer x, y;
@@ -321,26 +335,28 @@ namespace	ft
 			}
 
 
-			// Iretators:
-			// iterator begin()	{
-			// 	return (iterator(minNode(this->root))); }
-			// const_iterator begin() const	{
-			// 	return (iterator(minNode(this->root))); }
-			// iterator end()	{
-			// 	return (iterator(maxNode(this->root))); }
-			// const_iterator end() const	{
-			// 	return (iterator(maxNode(this->root))); }
-			// reverse_iterator rbegin()	{
-			// 	return (reverse_iterator(maxNode(this->root))); }
-			// const_reverse_iterator rbegin() const	{
-			// 	return (reverse_iterator(maxNode(this->root))); }
-			// reverse_iterator rend()	{
-			// 	return (reverse_iterator(minNode(this->root))); }
-			// const_reverse_iterator rend() const	{
-			// 	return (reverse_iterator(minNode(this->root))); }
+			size_type size()	{ return (_size); }
+			bool isEmpty()	{ return (_size == 0); }
+			size_type max_size() { return (_allocator->max_size()); }
+			
+			void destroy(node_pointer node)	{
+				if (!node)
+					return;
+				destroy(node->left);
+				destroy(node->right);
 
+				_allocator.destroy(node);
+				_allocator.deallocate(node, 1);
+			}
+			
+			void	clear()	{
+				destroy(this->root);
+				this->root = nullptr;
+				this->NIL = nullptr;
+			}
 
-		void printHelper(ft::Node<int>* root, std::string indent, bool last) {
+			
+		void printHelper(node_pointer root, std::string indent, bool last) {
 			// print the tree structure on the screen
 			if (root != NIL) {
 				std::cout<<indent;
@@ -353,7 +369,7 @@ namespace	ft
 				}
 				
 				std::string sColor = root->color?"RED":"BLACK";
-				std::cout<<root->key<<"("<<sColor<<")"<<std::endl;
+				std::cout<<root->key.first<<"("<<sColor<<")"<<std::endl;
 				printHelper(root->left, indent, false);
 				printHelper(root->right, indent, true);
 			}
