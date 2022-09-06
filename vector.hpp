@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/17 09:26:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/08/27 10:41:42 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/05 10:49:57 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,6 +231,37 @@ namespace	ft
 			private:
 				void deallocate() { if (_capacity) _allocator.deallocate(_container, _capacity); }
 	};
+
+	template< class T, class Alloc >
+		bool operator==( const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs )	{
+			return (lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
+		}
+
+	template< class T, class Alloc >
+		bool operator!=( const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs )	{
+			return !(lhs == rhs);
+		}
+
+	template< class T, class Alloc >
+		bool operator<( const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs )	{
+			return (ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+		}
+
+	template< class T, class Alloc >
+		bool operator<=( const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs )	{
+			return !(rhs < lhs);
+		}
+
+	template< class T, class Alloc >
+		bool operator>( const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs )	{
+			return (rhs < lhs);
+		}
+
+	template< class T, class Alloc >
+		bool operator>=( const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs )	{
+			return !(lhs < rhs);
+		}
+
 	template <class T, class Alloc>
 		void swap (vector<T,Alloc>& x, vector<T,Alloc>& y)
 		{
