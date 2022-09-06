@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/30 09:31:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/04 14:26:59 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/05 21:17:20 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ namespace	ft
 		node_pointer		right;
 		node_pointer		left;
 		
-
-		Node(value_type& data, node_color color = RED) 
-			: key(data), color(color), parent(nullptr), right(nullptr), left(nullptr) {}
+		Node()	{};
+		Node(value_type& key, node_color color = RED) 
+			: key(key), color(color), parent(nullptr), right(nullptr), left(nullptr)	{}
 		bool	isRoot()	{ return (!parent); }
 		bool isLeft()	{ return (parent && parent->left == this); }
 		bool	isRight()	{ return (parent && parent->right == this); }
@@ -56,6 +56,8 @@ namespace	ft
 		public:
 			node_pointer		root;
 			node_pointer		NIL;
+			node_pointer		_first;
+			node_pointer		_last;
 			allocator_type		_allocator;
 			Compare			_comp;
 			size_type			_size;
@@ -103,20 +105,6 @@ namespace	ft
 
 			node_pointer	maxNode(node_pointer root)	{
 				node_pointer node = root;
-				while (node->right != NIL)
-					node = node->right;
-				return (node);
-			}
-
-			node_pointer	begin()	{
-				node_pointer node = this->root;
-				while (node->left != NIL)
-					node = node->left;
-				return (node);
-			}
-
-			node_pointer	end()	{
-				node_pointer node = this->root;
 				while (node->right != NIL)
 					node = node->right;
 				return (node);
@@ -266,13 +254,36 @@ namespace	ft
 			RBTree()	{
 				_size = 0;
 				NIL = _allocator.allocate(1);
-				NIL->color = BLACK;
-				NIL->left = nullptr;
+				_last = _allocator.allocate(1);
+				_last->parent = nullptr;
+				_last->right = nullptr;
+				_last->left = nullptr;
+				NIL->parent = nullptr;
 				NIL->right = nullptr;
+				NIL->left = nullptr;
+				NIL->color = BLACK;
 				root = NIL;
 			}
-
+			
+			void	setBounds()
+			{
+				if (root == NIL)	{
+					_first = root;
+					_last = root;
+				}
+				_first = root;
+				while (_first->left != NIL)
+					_first = _first->left;
+				
+				node_pointer node = root;
+				while (node->right != NIL)
+					node = node->right;
+				node->right = _last;
+				_last->parent = node;
+			}
+			
 			node_pointer	insert(value_type key)	{
+
 				_size++;
 				node_pointer newNode = _allocator.allocate(1);
 				_allocator.construct(newNode, ft::Node<value_type>(key));
@@ -280,15 +291,16 @@ namespace	ft
 				this->root = BSTinsertion(this->root, newNode);
 				this->root->color = BLACK;
 				insertionFix(newNode);
+				setBounds();
 				return (newNode);
 			}
 
-			node_pointer searchNode(value_type key)
+			node_pointer search(const value_type &key) const
 			{
 				node_pointer node = this->root;
-				while (node != NIL) {
+				while (node != NIL && node != _last) {
 					if (!_comp(key, node->key) && !_comp(node->key, key))
-						break ;
+						break;
 					if (_comp(key, node->key))
 						node = node->left;
 					else
@@ -299,7 +311,7 @@ namespace	ft
 
 			void	remove(value_type key)
 			{
-				node_pointer node = searchNode(key);
+				node_pointer node = search(key);
 				if (node != NIL)
 				{
 					node_pointer x, y;
@@ -325,7 +337,7 @@ namespace	ft
 						}
 						rbTransplant(node, y);
 						y->right = node->right;
-						y->right->parent =y;
+						y->right->parent = y;
 						y->color = node->color;
 					}
 					delete node;
@@ -340,7 +352,7 @@ namespace	ft
 			size_type max_size() { return (_allocator->max_size()); }
 			
 			void destroy(node_pointer node)	{
-				if (!node)
+				if (node == NIL)
 					return;
 				destroy(node->left);
 				destroy(node->right);
