@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/17 09:26:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/09 14:56:37 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/11 16:50:36 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,23 +44,23 @@ namespace	ft
 			vector() : _size(0), _capacity(0), _container(nullptr), _allocator(allocator_type()) {}
 
 			explicit vector (const allocator_type& alloc) : 
-				_allocator(alloc), _container(nullptr), _capacity(0), _size(0)	{}
+				 _size(0), _capacity(0), _container(nullptr), _allocator(alloc)	{}
 
 			explicit vector( size_type n, const T& val = T(), const allocator_type& alloc = allocator_type()) :
-				_allocator(alloc), _container(nullptr), _capacity(0), _size(n)	{
+				_size(0), _capacity(0), _container(nullptr), _allocator(alloc)	{
 					this->assign(n, val);
 			}
 
 			template <class InputIt>
 				vector (InputIt first, InputIt last, const allocator_type& alloc = allocator_type(),
 					typename ft::enable_if<!ft::is_integral<InputIt>::value, InputIt>::type* = nullptr) :
-						_allocator(alloc), _container(nullptr), _capacity(0), _size(0)	{
+						_size(0), _capacity(0), _container(nullptr), _allocator(alloc)	{
 							this->assign(first, last);
 			}
 
-			vector (const vector& x) : _allocator(x._allocator), _container(nullptr), _capacity(0), _size(0)	{
-				this->assign(x.begin(), x.end());
-			
+			vector (const vector& x) : _size(0), _capacity(0), _container(nullptr), _allocator(x.get_allocator())	{
+				
+			this->assign(x.begin(), x.end());
 			}
 
 			vector& operator= (const vector& x)	{
@@ -112,7 +112,11 @@ namespace	ft
 				if (n > max_size())
 					throw std::length_error("allocator<T>::allocate(size_t n) 'n' exceeds maximum supported size");
 				else if ( n <= _capacity) return ;
-				pointer	_data = _allocator.allocate(n);
+				if (_capacity == 0 || n > _capacity*2)
+					_capacity = n;
+				else
+					_capacity *= 2;
+				pointer	_data = _allocator.allocate(_capacity);
 				for (size_type i = 0; i < _size; i++)
 				{
 					_allocator.construct(_data + i, _container[i]);
@@ -120,7 +124,6 @@ namespace	ft
 				}
 				this->deallocate();
 				_container = _data;
-				_capacity = n;
 			}
 
 
@@ -151,10 +154,10 @@ namespace	ft
 
 			// Modifiers:
 			template <class InputIt>
-				void assign (InputIt first, InputIt last)	{
+				void assign (InputIt first, InputIt last,
+					typename ft::enable_if<!ft::is_integral<InputIt>::value, InputIt>::type* = nullptr)	{
 					this->clear();
-					for (InputIt it = first; it != last; it++)
-						_size++;
+					_size = last - first;
 					if (_size > _capacity)
 					{
 						this->deallocate();
@@ -169,11 +172,11 @@ namespace	ft
 				this->clear();
 				_size = n;
 				if (_size > _capacity){
+					_capacity = n;
 					this->deallocate();
-					_capacity = _size;
 					_container = _allocator.allocate(_capacity);
 				}
-				for (size_type i = 0; i < _size; i++)
+				for (size_type i = 0; i < n; i++)
 					_allocator.construct(_container + i, val);
 			}
 
@@ -256,11 +259,14 @@ namespace	ft
 			}
 			
 			void swap (vector& x)	{
-				ft::swap(*this, x);
+				ft::swap(this->_size, x._size);
+				ft::swap(this->_capacity, x._capacity);
+				ft::swap(this->_container, x._container);
+				ft::swap(this->_allocator, x._allocator);
 			}
 
 			void clear()	{
-				if (_capacity)
+				if (_size)
 					for (size_type i = 0; i < _size; i++)
 						_allocator.destroy(&_container[i]);
 				_size = 0;
