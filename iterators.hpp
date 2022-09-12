@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/18 11:23:26 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/09 17:14:13 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/11 14:44:38 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,13 +86,11 @@ namespace ft
 			RBiterator() : m_ptr(nullptr) {}
 			RBiterator(node_pointer ptr) : m_ptr(reinterpret_cast<node_pointer>(ptr))	{}
 			RBiterator(node_pointer2 ptr) : m_ptr(reinterpret_cast<node_pointer>(ptr))	{}
-			RBiterator(const RBiterator& iter) : m_ptr(iter.m_ptr)	{}
-			RBiterator& operator=(const RBiterator& iter)	{ m_ptr = iter.m_ptr; return (*this); }
 			RBiterator& operator=(const node_pointer& ptr)	{ m_ptr = ptr; return (*this); }
 			~RBiterator() {}
 			
-			reference	operator*()	{ return (m_ptr->key); }
-			pointer	operator->()	{ return (&m_ptr->key); }
+			reference	operator*() const	{ return (m_ptr->key); }
+			pointer	operator->() const	{ return (&m_ptr->key); }
 
 			RBiterator&	operator++()	{
 				if (m_ptr->right && m_ptr->right->right)
