@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/30 09:31:53 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/05 21:17:20 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/11 16:40:14 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,18 @@
 
 #include	<iostream>
 #include "functional.hpp"
+// #include "iterators.hpp"
 
 namespace	ft
 {
 
-	enum node_color {BLACK, RED, DOUBLE_BLACK};
+	enum node_color {BLACK, RED};
 	
 	
 	template<typename T>
 	struct Node
 	{
-		typedef T		value_type;
+		typedef T			value_type;
 		typedef Node<T>*	node_pointer;
 
 		value_type		key;
@@ -33,8 +34,7 @@ namespace	ft
 		node_pointer		right;
 		node_pointer		left;
 		
-		Node()	{};
-		Node(value_type& key, node_color color = RED) 
+		Node(const value_type& key = value_type(), node_color color = RED) 
 			: key(key), color(color), parent(nullptr), right(nullptr), left(nullptr)	{}
 		bool	isRoot()	{ return (!parent); }
 		bool isLeft()	{ return (parent && parent->left == this); }
@@ -53,7 +53,13 @@ namespace	ft
 			typedef ft::Node<value_type>							node_type;
 			typedef typename ft::Node<value_type>::node_pointer		node_pointer;
 			typedef size_t										size_type;
-		public:
+
+
+			// typedef ft::RBiterator<value_type, node_pointer>					iterator;
+			// typedef ft::RBiterator<const value_type, node_pointer>				const_iterator;
+			// typedef ft::reverse_iterator<iterator>							reverse_iterator;
+			// typedef ft::reverse_iterator<const_iterator>						const_reverse_iterator;
+		private:
 			node_pointer		root;
 			node_pointer		NIL;
 			node_pointer		_first;
@@ -61,9 +67,8 @@ namespace	ft
 			allocator_type		_allocator;
 			Compare			_comp;
 			size_type			_size;
-		public:
+		protected:
 			void	leftRotate(node_pointer ptr)	{
-				// std::cout << "leftRotate" << std::endl;
 				node_pointer	r_node = ptr->right;
 				ptr->right = r_node->left;
 				if (r_node->left != NIL)
@@ -80,7 +85,6 @@ namespace	ft
 			}
 
 			void	rightRotate(node_pointer ptr)	{
-				// std::cout<< "rightRotate" << std::endl;
 				node_pointer	l_node = ptr->left;
 				ptr->left = l_node->right;
 				if (l_node->right != NIL)
@@ -111,8 +115,9 @@ namespace	ft
 			}
 			
 			node_pointer BSTinsertion(node_pointer ptr, node_pointer node)	{
-				if (ptr == NIL)
-					ptr = node;
+				if (ptr == NIL || ptr == _last)	{
+					ptr = node;	
+				}
 				else if (_comp(node->key, ptr->key))	{
 					ptr->left = BSTinsertion(ptr->left, node);
 					ptr->left->parent = ptr;
@@ -249,41 +254,63 @@ namespace	ft
 					node1->parent->left = node2;
 				node2->parent = node1->parent;
 			}
-			
-		public:
-			RBTree()	{
-				_size = 0;
-				NIL = _allocator.allocate(1);
-				_last = _allocator.allocate(1);
-				_last->parent = nullptr;
-				_last->right = nullptr;
-				_last->left = nullptr;
-				NIL->parent = nullptr;
-				NIL->right = nullptr;
-				NIL->left = nullptr;
-				NIL->color = BLACK;
-				root = NIL;
+
+			void destroy(node_pointer node)	{
+				if (node != NIL && node != _last)	{
+					destroy(node->left);
+					destroy(node->right);
+
+					_allocator.destroy(node);
+					_allocator.deallocate(node, 1);
+				}
 			}
 			
-			void	setBounds()
-			{
+		public:
+			RBTree(const allocator_type &alloc = allocator_type()) : root(nullptr), NIL(nullptr), _first(nullptr), _last(nullptr), _allocator(alloc), _size(0)	{
+				NIL = _allocator.allocate(1);
+				_allocator.construct(NIL, node_type(value_type(), BLACK));
+				// _last = _allocator.allocate(1);
+				// _allocator.construct(_last, node_type(value_type(), BLACK));
+				root = NIL;
+				_last = NIL;
+				_first = NIL;
+			}
+
+			~RBTree()	{
+				clear();
+				_allocator.destroy(NIL);
+				_allocator.deallocate(NIL, 1);
+			}
+
+			node_pointer begin() const	{ return (_first); }
+
+			node_pointer end() const	{ return (_last); }
+			
+			void	setBounds()	{
 				if (root == NIL)	{
-					_first = root;
-					_last = root;
+					_allocator.destroy(_last);
+					_allocator.deallocate(_last, 1);
+					_last = NIL;
+					_first = NIL;
+					return ;
 				}
 				_first = root;
 				while (_first->left != NIL)
 					_first = _first->left;
-				
 				node_pointer node = root;
-				while (node->right != NIL)
+				while (node->right != NIL && node->right != _last)
 					node = node->right;
+				if (_last == NIL)	{
+					_last = _allocator.allocate(1);
+					_allocator.construct(_last, node_type(value_type(), BLACK));
+					_last->left = NIL;
+					_last->right = NIL;
+				}
 				node->right = _last;
 				_last->parent = node;
 			}
 			
 			node_pointer	insert(value_type key)	{
-
 				_size++;
 				node_pointer newNode = _allocator.allocate(1);
 				_allocator.construct(newNode, ft::Node<value_type>(key));
@@ -292,27 +319,28 @@ namespace	ft
 				this->root->color = BLACK;
 				insertionFix(newNode);
 				setBounds();
+				// std::cout << "_first        = " << "==" << _first << std::endl;
+				// std::cout << "_last         = " << "==" << _last << std::endl;
+				// std::cout << "_last parent  = " << "==" << _last->parent << std::endl;
 				return (newNode);
 			}
 
-			node_pointer search(const value_type &key) const
-			{
+			node_pointer search(const value_type &key) const	{
 				node_pointer node = this->root;
 				while (node != NIL && node != _last) {
 					if (!_comp(key, node->key) && !_comp(node->key, key))
-						break;
+						return (node);
 					if (_comp(key, node->key))
 						node = node->left;
 					else
 						node = node->right;
 				}
-				return (node);
+				return (_last);
 			}
 
-			void	remove(value_type key)
-			{
+			size_type	remove(value_type key)	{
 				node_pointer node = search(key);
-				if (node != NIL)
+				if (node != _last)
 				{
 					node_pointer x, y;
 					int color = node->color;
@@ -340,34 +368,35 @@ namespace	ft
 						y->right->parent = y;
 						y->color = node->color;
 					}
-					delete node;
+					_allocator.destroy(node);
+					_allocator.deallocate(node, 1);
 					if (color == BLACK)
 						fixDelete(x);
+					_size--;
+					if (!_size)
+						this->root = NIL;
+					setBounds();
+					return (1);
+				}
+				return (0);
+			}
+
+			size_type size()	{ return (_size); }
+
+			bool isEmpty()	{ return (_size == 0); }
+
+			size_type max_size() { return (_allocator->max_size()); }
+						
+			void	clear()	{
+				if (root != NIL)	{
+					destroy(this->root);
+					this->root = NIL;
+					setBounds();
+					_size = 0;
 				}
 			}
 
 
-			size_type size()	{ return (_size); }
-			bool isEmpty()	{ return (_size == 0); }
-			size_type max_size() { return (_allocator->max_size()); }
-			
-			void destroy(node_pointer node)	{
-				if (node == NIL)
-					return;
-				destroy(node->left);
-				destroy(node->right);
-
-				_allocator.destroy(node);
-				_allocator.deallocate(node, 1);
-			}
-			
-			void	clear()	{
-				destroy(this->root);
-				this->root = nullptr;
-				this->NIL = nullptr;
-			}
-
-			
 		void printHelper(node_pointer root, std::string indent, bool last) {
 			// print the tree structure on the screen
 			if (root != NIL) {
@@ -388,8 +417,7 @@ namespace	ft
 			// cout<<root->left->data<<endl;
 		}
 
-		void Print() 
-		{
+		void Print() 	{
 			if (root) 
 				printHelper(root, "", true);
 		}
