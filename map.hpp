@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/17 09:26:47 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/05 21:16:48 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/11 11:45:19 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,12 +58,12 @@ namespace	ft
 			typedef ft::Node<value_type>*	 								node_pointer;
 
 		public:
-			typedef ft::RBiterator<value_type>								iterator;
-			typedef ft::RBiterator<const value_type>						const_iterator;
+			typedef ft::RBiterator<value_type, const value_type>				iterator;
+			typedef ft::RBiterator<const value_type, value_type>				const_iterator;
 			typedef ft::reverse_iterator<iterator>							reverse_iterator;
 			typedef ft::reverse_iterator<const_iterator>						const_reverse_iterator;
 
-		private:
+		public:
 			tree_type*		_tree;
 			allocator_type		_tree_allocator;
 			Allocator			_allocator;
@@ -71,9 +71,11 @@ namespace	ft
 			
 		public:
 			// Constructors and destructors
-			map() : _allocator(), _comp() { _tree = _tree_allocator.allocate(1); _tree_allocator.construct(_tree); }
+			map() : _tree(nullptr), _tree_allocator(), _allocator(), _comp() {
+				_tree = _tree_allocator.allocate(1); _tree_allocator.construct(_tree);
+			}
 
-			explicit map(const Compare &comp, const Allocator &alloc = Allocator()) : _allocator(alloc), _comp(comp)  {
+			explicit map(const Compare &comp, const Allocator &alloc = Allocator()) : _tree(nullptr), _allocator(alloc), _comp(comp) {
 				_tree = _tree_allocator.allocate(1);
 				_tree_allocator.construct(_tree);
 			}
@@ -86,24 +88,26 @@ namespace	ft
 					insert(*first++);
 			}
 
-			map( const map& other ) : _comp(other.key_comp), _allocator(other.get_allocator()) {
+			map( const map& other ) : _allocator(other.get_allocator()), _comp(other._comp) {
 				_tree = _tree_allocator.allocate(1);
 				_tree_allocator.construct(_tree);
-				const_iterator it = other.begin();
-				while (it != other.end())
-					insert(*it++);
+				*this = other;
 			}
 
 			~map()	{
-				clear();
+				_tree_allocator.destroy(_tree);
+				_tree_allocator.deallocate(_tree, 1);
 			}
 
 			map&			operator=(const map& other) {
-				_tree_allocator.destroy(_tree);
-				_tree_allocator.deallocate(_tree, 1);
 
-				_tree = _tree_allocator.allocate(1);
-				_tree_allocator.construct(_tree);
+				this->clear();
+				
+				// _tree_allocator.destroy(_tree);
+				// _tree_allocator.deallocate(_tree, 1);
+
+				// _tree = _tree_allocator.allocate(1);
+				// _tree_allocator.construct(_tree);
 				insert(other.begin(), other.end());
 				return (*this);
 			}
@@ -111,53 +115,58 @@ namespace	ft
 
 			// Element access
 			T&	at(const Key &key) {
-				node_pointer node = _tree->search(key);
-				if (node == _tree->NIL)
-					throw std::out_of_range("No such key has found");
+				value_type pair = ft::make_pair(key, T());
+				node_pointer node = _tree->search(pair);
+				if (node == _tree->end())
+					throw std::out_of_range("map::at:  key not found");
 				return node->key.second;
 			}
 
 			const T&	at(const Key &key) const {
-				node_pointer node = _tree->search(key);
-				if (node == _tree->NIL)
-					throw std::out_of_range("No such key has found");
+				value_type pair = ft::make_pair(key, T());
+				node_pointer node = _tree->search(pair);
+				if (node == _tree->end())
+					throw std::out_of_range("map::at:  key not found");
 				return node->key.second;
 			}
 			
 			mapped_type&	operator[](const key_type& key)	{
 				value_type pair = ft::make_pair(key, T());
 				node_pointer node = _tree->search(pair);
-				if (node == _tree->NIL || node == _tree->_last)
-				{
-					return (insert(pair).first->second);}
+				if (node == _tree->end())
+					return (insert(pair).first->second);
 				return (node->key.second);
 			}
 
 
 			// Iterators
 			iterator begin()	{
-				return (iterator(_tree->_first)); }
+				return (iterator(_tree->begin())); }
 
 			const_iterator begin() const	{
-				return (const_iterator(_tree->_first)); }
+				return (const_iterator(_tree->begin())); }
 
 			iterator end()	{
-				return (iterator(_tree->_last)); }
+				return (iterator(_tree->end())); }
 
 			const_iterator end() const	{
-				return (const_iterator(_tree->_last)); }
+				return (const_iterator(_tree->end())); }
 
 			reverse_iterator rbegin()	{
-				return (reverse_iterator(end())); }
+				iterator iter = this->end();
+				return (reverse_iterator(iter)); }
 
 			const_reverse_iterator rbegin() const	{
-				return (const_reverse_iterator(end())); }
+				const_iterator iter = this->end();
+				return (const_reverse_iterator(iter)); }
 
 			reverse_iterator rend()	{
-				return (reverse_iterator(begin())); }
+				iterator iter = this->begin();
+				return (reverse_iterator(iter)); }
 
 			const_reverse_iterator rend() const	{
-				return (const_reverse_iterator(begin())); }
+				const_iterator iter = this->begin();
+				return (const_reverse_iterator(iter)); }
 
 
 			// Capacity
@@ -175,13 +184,14 @@ namespace	ft
 
 			ft::pair<iterator,bool>	insert(const value_type& val)	{
 				node_pointer node = _tree->search(val);
-				if (node != _tree->NIL)
+				if (node != _tree->end())
 					return (ft::make_pair(iterator(node),false));
 				node = _tree->insert(val);
 				return (ft::make_pair(iterator(node),true));
 			}
 
 			iterator				insert(iterator hint, const value_type& val)	{
+
 				(void) hint;
 				return (insert(val).first);
 			}
@@ -189,7 +199,9 @@ namespace	ft
 			template<typename InputIt>
 			void					insert(InputIt first, InputIt last)	{
 				while (first != last)
-					insert(first++);
+				{
+					insert(*first++);
+				}
 			}
 
 			void					erase(iterator pos)	{
@@ -198,42 +210,40 @@ namespace	ft
 
 			size_type				erase(const key_type& key)	{
 				value_type pair = ft::make_pair(key , T());
-				node_pointer node = _tree->find(pair);
-				if (node != _tree->NIL)	{
-					_tree->remove(node);
-					return (1);
-				}
-				return (0);
+					return (_tree->remove(pair));
 			}
 
 			void					erase(iterator first, iterator last)	{
-				for (; first != last; first++)
-					erase(first);
+				while(first != last)
+					erase(first++);
 			}
 
 			void					swap(map& other)	{
-				ft::swap(*this, other);
+				ft::swap(this->_tree, other._tree);
+				ft::swap(this->_tree_allocator, other._tree_allocator);
+				ft::swap(this->_allocator, other._allocator);
+				ft::swap(this->_comp, other._comp);
 			}
 
 
 			// Lookup
 			iterator								find(const key_type& key)	{
 				node_pointer node = _tree->search(ft::make_pair(key, T()));
-				if (node != _tree->NIL)
+				if (node != _tree->end())
 					return (iterator(node));
 				return (iterator(end()));
 			}
 
 			const_iterator							find(const key_type& key) const	{
 				node_pointer node = _tree->search(ft::make_pair(key, T()));
-				if (node != _tree->NIL)
+				if (node != _tree->end())
 					return (const_iterator(node));
 				return (const_iterator(end()));
 			}
 
 			size_type								count(const key_type& key) const	{
 				node_pointer node = _tree->search(ft::make_pair(key, T()));
-				if (node != _tree->NIL)
+				if (node != _tree->end())
 					return (1);
 				return (0);
 			}
@@ -254,7 +264,7 @@ namespace	ft
 
 			iterator								upper_bound(const key_type& key)	{
 				iterator it;
-				for (it = begin(); it != end() && _comp(key, (*it).first); ++it)
+				for (it = begin(); it != end() && !_comp(key, (*it).first); ++it)
 					;
 				return (it);
 			}
