@@ -6,7 +6,7 @@
 /*   By: ael-hadd <ael-hadd@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/27 10:15:00 by ael-hadd          #+#    #+#             */
-/*   Updated: 2022/09/05 11:18:04 by ael-hadd         ###   ########.fr       */
+/*   Updated: 2022/09/11 09:37:21 by ael-hadd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ namespace ft
 
 	template <typename T>
 	void	swap(T& x, T& y)	{
-		T tmp(x);
+		T tmp = x;
 		x = y;
 		y = tmp;
 	}
